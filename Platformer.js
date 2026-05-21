@@ -6,7 +6,7 @@ const HEIGHT = 500;
 const GROUND_Y = 400;
 const FINISH_X = 720;
 
-// Player
+// Player variables
 let playerX = 60;
 let playerY = GROUND_Y - 40;
 let velocityX = 0;
@@ -28,35 +28,31 @@ let currentText = "";
 let showText = false;
 let nextTextAfterFinish = "";
 let finishLabel = "FINISH";
-
 let isUSAMode = true;
 let isSecondStage = false;
 
-// Level Objects
+// Objects
 let platforms = [];
 let killBlocks = [];
 
-// Content
-const usa = `The US were in a fight towards advancements into the mysteries of space.
-The US lost most of the firsts for their country.
-However, the US did something so advanced that we havent done it since.
-The US won by putting the first man/men on the moon on July 20th, 1969 during
-the Apollo 11 mission. In total, the Apollo missions costed over $25 billion.`;
+// Texts
+const usa = `The US were in a fight towards advancements into the mysteries of space.\nThe US lost most of the firsts for their country.\nHowever, the US did something so advanced that we havent done it since.\nThe US won by putting the first man/men on the moon on July 20th, 1969 during\nthe Apollo 11 mission. In total, the Apollo missions costed over $25 billion.`;
 
-const ussr = `The USSR (also known as the Soviet Union) won in most of the firsts
-when it comes to space advancements. The Soviet Union put not only the first
-national satellite into orbit but also put the first man in orbit.`;
+const ussr = `The USSR (also known as the Soviet Union) won in most of the firsts\nwhen it comes to space advancements. The Soviet Union put not only the first\nnational satellite into orbit but also put the first man in orbit.`;
 
-const yury = `The USSR were the first to put the first man into orbit,
-his name was Yuri Gagarin. Sergei Krikalev was also sent into
-orbit in May 1991. Unlike Gagarin, Krikalev wasn’t so lucky. He is known as
-the last Soviet citizen and was stuck in space for nearly 2 years after the
-USSR disbanded. He suffered huge psychological trauma.`;
+const yury = `The USSR were the first to put the first man into orbit,\nhis name was Yuri Gagarin. Sergei Krikalev was also sent into\norbit in May 1991. Unlike Gagarin, Krikalev wasn’t so lucky. He is known as\nthe last Soviet citizen and was stuck in space for nearly 2 years after the\nUSSR disbanded. He suffered huge psychological trauma.`;
 
-const alan = `Alan Shepard was the first American in space.
-He flew aboard Freedom 7 on May 5, 1961, as part of Project Mercury.`;
+const alan = `Alan Shepard was the first American in space.\nHe flew aboard Freedom 7 on May 5, 1961, as part of Project Mercury.`;
 
-// Initialize Level
+// Safe roundRect fallback
+if (!ctx.roundRect) {
+    ctx.roundRect = function(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.fill();
+    };
+}
+
 function createParkour() {
     platforms = [
         {x: 150, y: 320, width: 120, height: 15},
@@ -80,7 +76,7 @@ function resetToStart() {
     velocityX = 0;
     velocityY = 0;
     onGround = true;
-    randomizeKillBlocks();   // Random kill blocks on death
+    randomizeKillBlocks();
 }
 
 function triggerFinish() {
@@ -98,12 +94,10 @@ function triggerFinish() {
 }
 
 function update() {
-    // Horizontal Movement
     if (leftPressed) velocityX = -MOVE_SPEED;
     else if (rightPressed) velocityX = MOVE_SPEED;
     else velocityX *= FRICTION;
 
-    // Jump
     if (jumpPressed && onGround) {
         velocityY = JUMP_FORCE;
         onGround = false;
@@ -117,20 +111,17 @@ function update() {
 
     const playerRect = {x: playerX, y: playerY, width: 30, height: 40};
 
-    // Ground Collision
+    // Ground
     if (playerY >= GROUND_Y - 40) {
         playerY = GROUND_Y - 40;
         velocityY = 0;
         onGround = true;
     }
 
-    // Platform Collision
+    // Platforms
     for (let p of platforms) {
-        if (playerRect.x < p.x + p.width &&
-            playerRect.x + playerRect.width > p.x &&
-            playerRect.y < p.y + p.height &&
-            playerRect.y + playerRect.height > p.y &&
-            velocityY >= 0) {
+        if (playerRect.x < p.x + p.width && playerRect.x + playerRect.width > p.x &&
+            playerRect.y < p.y + p.height && playerRect.y + playerRect.height > p.y && velocityY >= 0) {
             playerY = p.y - 40;
             velocityY = 0;
             onGround = true;
@@ -142,18 +133,16 @@ function update() {
     if (playerX < 0) playerX = 0;
     if (playerX > WIDTH - 30) playerX = WIDTH - 30;
 
-    // Kill Blocks
+    // Kill blocks
     for (let k of killBlocks) {
-        if (playerRect.x < k.x + k.width &&
-            playerRect.x + playerRect.width > k.x &&
-            playerRect.y < k.y + k.height &&
-            playerRect.y + playerRect.height > k.y) {
+        if (playerRect.x < k.x + k.width && playerRect.x + playerRect.width > k.x &&
+            playerRect.y < k.y + k.height && playerRect.y + playerRect.height > k.y) {
             resetToStart();
             return;
         }
     }
 
-    // Finish Line
+    // Finish
     if (playerX + 30 >= FINISH_X) {
         triggerFinish();
         resetToStart();
@@ -173,15 +162,11 @@ function draw() {
 
     // Platforms
     ctx.fillStyle = '#5a5a5a';
-    for (let p of platforms) {
-        ctx.fillRect(p.x, p.y, p.width, p.height);
-    }
+    for (let p of platforms) ctx.fillRect(p.x, p.y, p.width, p.height);
 
     // Kill Blocks
     ctx.fillStyle = '#b40000';
-    for (let k of killBlocks) {
-        ctx.fillRect(k.x, k.y, k.width, k.height);
-    }
+    for (let k of killBlocks) ctx.fillRect(k.x, k.y, k.width, k.height);
 
     // Finish Line
     ctx.strokeStyle = '#dc3232';
@@ -198,9 +183,7 @@ function draw() {
 
     // Player
     ctx.fillStyle = '#3278dc';
-    ctx.beginPath();
     ctx.roundRect(playerX, playerY, 30, 40, 8);
-    ctx.fill();
 
     // Instructions
     ctx.fillStyle = '#333';
@@ -208,79 +191,55 @@ function draw() {
     ctx.fillText('Arrow keys / WASD to move | Up / W / Space to jump', 10, 25);
     ctx.fillText('Press 1: USA Cycle | 2: USSR Cycle', 10, 45);
 
-    // Story Text
+    // Text
     if (showText && currentText) {
         ctx.fillStyle = 'black';
         ctx.font = '18px "Times New Roman", serif';
-        drawMultilineText(currentText, 20, 80);
+        const lines = currentText.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], 20, 80 + i * 24);
+        }
     }
 }
 
-function drawMultilineText(text, x, y) {
-    const lines = text.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i], x, y + i * 24);
-    }
-}
-
-// ====================== INPUT ======================
-window.addEventListener('keydown', e => {
-    switch (e.key) {
-        case 'ArrowLeft':
-        case 'a':
-        case 'A': leftPressed = true; break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D': rightPressed = true; break;
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-        case ' ': jumpPressed = true; break;
-
-        case '1':
-            isUSAMode = true;
-            isSecondStage = false;
-            currentText = usa;
-            nextTextAfterFinish = alan;
-            finishLabel = "ALAN";
-            showText = true;
-            resetToStart();
-            break;
-
-        case '2':
-            isUSAMode = false;
-            isSecondStage = false;
-            currentText = ussr;
-            nextTextAfterFinish = yury;
-            finishLabel = "YURY";
-            showText = true;
-            resetToStart();
-            break;
-    }
-});
-
-window.addEventListener('keyup', e => {
-    switch (e.key) {
-        case 'ArrowLeft':
-        case 'a':
-        case 'A': leftPressed = false; break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D': rightPressed = false; break;
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-        case ' ': jumpPressed = false; break;
-    }
-});
-
-// ====================== GAME LOOP ======================
+// Game Loop
 function gameLoop() {
     update();
     draw();
     requestAnimationFrame(gameLoop);
 }
 
-// Start Game
+// Controls
+window.addEventListener('keydown', e => {
+    switch(e.key.toLowerCase()) {
+        case 'arrowleft':
+        case 'a': leftPressed = true; break;
+        case 'arrowright':
+        case 'd': rightPressed = true; break;
+        case 'arrowup':
+        case 'w':
+        case ' ': jumpPressed = true; break;
+        case '1':
+            isUSAMode = true; isSecondStage = false; currentText = usa; nextTextAfterFinish = alan; finishLabel = "ALAN"; showText = true; resetToStart(); break;
+        case '2':
+            isUSAMode = false; isSecondStage = false; currentText = ussr; nextTextAfterFinish = yury; finishLabel = "YURY"; showText = true; resetToStart(); break;
+    }
+});
+
+window.addEventListener('keyup', e => {
+    switch(e.key.toLowerCase()) {
+        case 'arrowleft':
+        case 'a': leftPressed = false; break;
+        case 'arrowright':
+        case 'd': rightPressed = false; break;
+        case 'arrowup':
+        case 'w':
+        case ' ': jumpPressed = false; break;
+    }
+});
+
+// Start
 createParkour();
 gameLoop();
+
+console.log("✅ Space Race Platformer Loaded Successfully!");
