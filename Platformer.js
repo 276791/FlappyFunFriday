@@ -1,20 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Platformer - Space Race</title>
-<style>
-    body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; }
-    canvas { background: white; image-rendering: pixelated; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-</style>
-</head>
-<body>
-
-<canvas id="game" width="800" height="500"></canvas>
-
-<script>
-// ==================== PLATFORMER - SPACE RACE (JS) ====================
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -23,6 +6,7 @@ const HEIGHT = 500;
 const GROUND_Y = 400;
 const FINISH_X = 720;
 
+// Player
 let playerX = 60;
 let playerY = GROUND_Y - 40;
 let velocityX = 0;
@@ -33,11 +17,13 @@ let leftPressed = false;
 let rightPressed = false;
 let jumpPressed = false;
 
+// Physics
 const GRAVITY = 0.5;
 const JUMP_FORCE = -12;
 const MOVE_SPEED = 4;
 const FRICTION = 0.8;
 
+// Game State
 let currentText = "";
 let showText = false;
 let nextTextAfterFinish = "";
@@ -46,7 +32,7 @@ let finishLabel = "FINISH";
 let isUSAMode = true;
 let isSecondStage = false;
 
-// Parkour
+// Level Objects
 let platforms = [];
 let killBlocks = [];
 
@@ -70,22 +56,21 @@ USSR disbanded. He suffered huge psychological trauma.`;
 const alan = `Alan Shepard was the first American in space.
 He flew aboard Freedom 7 on May 5, 1961, as part of Project Mercury.`;
 
-// Create initial parkour
+// Initialize Level
 function createParkour() {
     platforms = [
         {x: 150, y: 320, width: 120, height: 15},
         {x: 320, y: 250, width: 100, height: 15},
-        {x: 480, y: 300, width: 80, height: 15}
+        {x: 480, y: 300, width: 80,  height: 15}
     ];
-
     randomizeKillBlocks();
 }
 
 function randomizeKillBlocks() {
     killBlocks = [
-        {x: Math.random() * 400 + 150, y: 380, width: 500, height: 20},   // bottom one
-        {x: Math.random() * 300 + 300, y: 200, width: 50, height: 20},    // upper one
-        {x: Math.random() * 250 + 450, y: 280, width: 70, height: 20}     // middle one
+        {x: Math.random() * 400 + 150, y: 380, width: 500, height: 20},
+        {x: Math.random() * 300 + 280, y: 200, width: 50,  height: 20},
+        {x: Math.random() * 250 + 450, y: 280, width: 70,  height: 20}
     ];
 }
 
@@ -95,7 +80,7 @@ function resetToStart() {
     velocityX = 0;
     velocityY = 0;
     onGround = true;
-    randomizeKillBlocks();        // Randomize kill blocks on death/reset
+    randomizeKillBlocks();   // Random kill blocks on death
 }
 
 function triggerFinish() {
@@ -113,11 +98,12 @@ function triggerFinish() {
 }
 
 function update() {
-    // Movement
+    // Horizontal Movement
     if (leftPressed) velocityX = -MOVE_SPEED;
     else if (rightPressed) velocityX = MOVE_SPEED;
     else velocityX *= FRICTION;
 
+    // Jump
     if (jumpPressed && onGround) {
         velocityY = JUMP_FORCE;
         onGround = false;
@@ -131,21 +117,20 @@ function update() {
 
     const playerRect = {x: playerX, y: playerY, width: 30, height: 40};
 
-    // Ground
+    // Ground Collision
     if (playerY >= GROUND_Y - 40) {
         playerY = GROUND_Y - 40;
         velocityY = 0;
         onGround = true;
     }
 
-    // Platforms
+    // Platform Collision
     for (let p of platforms) {
         if (playerRect.x < p.x + p.width &&
             playerRect.x + playerRect.width > p.x &&
             playerRect.y < p.y + p.height &&
             playerRect.y + playerRect.height > p.y &&
             velocityY >= 0) {
-            
             playerY = p.y - 40;
             velocityY = 0;
             onGround = true;
@@ -157,7 +142,7 @@ function update() {
     if (playerX < 0) playerX = 0;
     if (playerX > WIDTH - 30) playerX = WIDTH - 30;
 
-    // Kill blocks
+    // Kill Blocks
     for (let k of killBlocks) {
         if (playerRect.x < k.x + k.width &&
             playerRect.x + playerRect.width > k.x &&
@@ -168,7 +153,7 @@ function update() {
         }
     }
 
-    // Finish line
+    // Finish Line
     if (playerX + 30 >= FINISH_X) {
         triggerFinish();
         resetToStart();
@@ -198,7 +183,7 @@ function draw() {
         ctx.fillRect(k.x, k.y, k.width, k.height);
     }
 
-    // Finish line
+    // Finish Line
     ctx.strokeStyle = '#dc3232';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -206,10 +191,10 @@ function draw() {
     ctx.lineTo(FINISH_X, GROUND_Y);
     ctx.stroke();
 
-    ctx.font = 'bold 14px sans-serif';
     ctx.fillStyle = '#dc3232';
+    ctx.font = 'bold 14px sans-serif';
     const labelWidth = ctx.measureText(finishLabel).width;
-    ctx.fillText(finishLabel, FINISH_X - labelWidth/2, GROUND_Y - 90);
+    ctx.fillText(finishLabel, FINISH_X - labelWidth / 2, GROUND_Y - 90);
 
     // Player
     ctx.fillStyle = '#3278dc';
@@ -223,32 +208,24 @@ function draw() {
     ctx.fillText('Arrow keys / WASD to move | Up / W / Space to jump', 10, 25);
     ctx.fillText('Press 1: USA Cycle | 2: USSR Cycle', 10, 45);
 
-    // Main text
+    // Story Text
     if (showText && currentText) {
         ctx.fillStyle = 'black';
-        ctx.font = '18px "Times New Roman"';
-        drawMultilineString(currentText, 20, 80);
+        ctx.font = '18px "Times New Roman", serif';
+        drawMultilineText(currentText, 20, 80);
     }
 }
 
-function drawMultilineString(text, x, y) {
+function drawMultilineText(text, x, y) {
     const lines = text.split('\n');
-    const lineHeight = 24;
     for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i], x, y + i * lineHeight);
+        ctx.fillText(lines[i], x, y + i * 24);
     }
 }
 
-// Game Loop
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-
-// Keyboard
+// ====================== INPUT ======================
 window.addEventListener('keydown', e => {
-    switch(e.key) {
+    switch (e.key) {
         case 'ArrowLeft':
         case 'a':
         case 'A': leftPressed = true; break;
@@ -259,7 +236,7 @@ window.addEventListener('keydown', e => {
         case 'w':
         case 'W':
         case ' ': jumpPressed = true; break;
-        
+
         case '1':
             isUSAMode = true;
             isSecondStage = false;
@@ -269,7 +246,7 @@ window.addEventListener('keydown', e => {
             showText = true;
             resetToStart();
             break;
-            
+
         case '2':
             isUSAMode = false;
             isSecondStage = false;
@@ -283,7 +260,7 @@ window.addEventListener('keydown', e => {
 });
 
 window.addEventListener('keyup', e => {
-    switch(e.key) {
+    switch (e.key) {
         case 'ArrowLeft':
         case 'a':
         case 'A': leftPressed = false; break;
@@ -297,10 +274,13 @@ window.addEventListener('keyup', e => {
     }
 });
 
-// Start
+// ====================== GAME LOOP ======================
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+// Start Game
 createParkour();
 gameLoop();
-
-</script>
-</body>
-</html>
